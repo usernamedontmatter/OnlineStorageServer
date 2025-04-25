@@ -40,7 +40,7 @@ Rewrite file
 
 
 ```
-create_or_rewrite_file path_to_file length // + file
+create_or_rewrite_file path_to_file length
 ```
 * path_to_file - path to file
 * length - length of file value
