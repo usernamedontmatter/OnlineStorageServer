@@ -195,6 +195,7 @@ namespace Server {
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
+                    bool is_arguments_ok = true;
                     std::string name;
                     for (auto it = arr->begin(); it != arr->end(); ++it) {
                         if (*it == "--name") {
@@ -203,6 +204,7 @@ namespace Server {
                                 name = *it;
                             }
                             else {
+                                is_arguments_ok = false;
                                 bzero(buffer, buffer_size);
                                 buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
                                 strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").c_str());
@@ -213,24 +215,26 @@ namespace Server {
                         }
                     }
 
-                    std::filesystem::path path = base_directory;
-                    path += "/" + arr->at(1);
-                    path = path.lexically_normal();
+                    if (is_arguments_ok) {
+                        std::filesystem::path path = base_directory;
+                        path += "/" + arr->at(1);
+                        path = path.lexically_normal();
 
-                    FileSystemManager::FileSystemStatus status;
-                    if (arr->at(0) == "change_file_data") {
-                        status = FileSystemManager::FileSystemCommands::ChangeFileData(&path, name.empty() ? nullptr : &name);
-                    }
-                    else if (arr->at(0) == "change_directory_data") {
-                        status = FileSystemManager::FileSystemCommands::ChangeDirectoryData(&path, name.empty() ? nullptr : &name);
-                    }
-                    else {
-                        status = FileSystemManager::FileSystemStatus::UnknownError;
-                    }
+                        FileSystemManager::FileSystemStatus status;
+                        if (arr->at(0) == "change_file_data") {
+                            status = FileSystemManager::FileSystemCommands::ChangeFileData(&path, name.empty() ? nullptr : &name);
+                        }
+                        else if (arr->at(0) == "change_directory_data") {
+                            status = FileSystemManager::FileSystemCommands::ChangeDirectoryData(&path, name.empty() ? nullptr : &name);
+                        }
+                        else {
+                            status = FileSystemManager::FileSystemStatus::UnknownError;
+                        }
 
-                    std::string response = make_response(status);
+                        std::string response = make_response(status);
 
-                    send(socket, &response[0], buffer_size, 0);
+                        send(socket, &response[0], buffer_size, 0);
+                    }
                 }
             }
             else if(arr->at(0) == "replace_file") {
