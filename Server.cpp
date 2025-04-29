@@ -99,7 +99,7 @@ namespace Server {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").c_str());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
