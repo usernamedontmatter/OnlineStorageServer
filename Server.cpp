@@ -47,31 +47,31 @@ namespace server {
         static std::string make_response(const file_system_manager::file_system_status status, const std::string& response_message = "") {
             std::string response;
             switch (status) {
-                case file_system_manager::file_system_status::SUCCESS:
+                case file_system_manager::file_system_status::success:
                     response = { static_cast<char>(ok) };
                     break;
                 default:
-                case file_system_manager::file_system_status::UnknownError:
+                case file_system_manager::file_system_status::unknown_error:
                     response = { static_cast<char>(server_error) };
                     response += "Unknown error";
                     break;
-                case file_system_manager::file_system_status::INCORRECT_NAME:
+                case file_system_manager::file_system_status::incorrect_name:
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "Incorrect name";
                     break;
-                case file_system_manager::file_system_status::FILE_DONT_EXISTS:
+                case file_system_manager::file_system_status::file_dont_exists:
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "File don't exists";
                     break;
-                case file_system_manager::file_system_status::FILE_ALREADY_EXISTS:
+                case file_system_manager::file_system_status::file_already_exists:
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "File already exists";
                     break;
-                case file_system_manager::file_system_status::DIRECTORY_DONT_EXISTS:
+                case file_system_manager::file_system_status::directory_dont_exists:
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "Directory don't exists";
                     break;
-                case file_system_manager::file_system_status::DIRECTORY_ALREADY_EXISTS:
+                case file_system_manager::file_system_status::directory_already_exists:
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "Directory already exists";
                     break;
@@ -113,7 +113,7 @@ namespace server {
                         std::list<std::filesystem::directory_entry> files;
                         status = file_system_manager::file_system_commands::show_files(&path, files);
 
-                        if (status == file_system_manager::file_system_status::SUCCESS) {
+                        if (status == file_system_manager::file_system_status::success) {
                             response_message = "";
                             for (auto it = files.begin(); it != files.end(); ++it) {
                                if (it->is_directory()) {
@@ -133,7 +133,7 @@ namespace server {
                         status = file_system_manager::file_system_commands::delete_file(&path);
                     }
                     else {
-                        status = file_system_manager::file_system_status::UnknownError;
+                        status = file_system_manager::file_system_status::unknown_error;
                     }
 
                     bzero(buffer, buffer_size);
@@ -178,7 +178,7 @@ namespace server {
                         status = file_system_manager::file_system_commands::create_or_rewrite_file(&path, &file_text);
                     }
                     else {
-                        status = file_system_manager::file_system_status::UnknownError;
+                        status = file_system_manager::file_system_status::unknown_error;
                     }
 
                     bzero(buffer, buffer_size);
@@ -228,7 +228,7 @@ namespace server {
                             status = file_system_manager::file_system_commands::change_directory_data(&path, name.empty() ? nullptr : &name);
                         }
                         else {
-                            status = file_system_manager::file_system_status::UnknownError;
+                            status = file_system_manager::file_system_status::unknown_error;
                         }
 
                         std::string response = make_response(status);
