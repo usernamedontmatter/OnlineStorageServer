@@ -99,7 +99,7 @@ namespace Server {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
@@ -137,7 +137,7 @@ namespace Server {
                     }
 
                     bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(status, response_message).c_str());
+                    strcpy(buffer, make_response(status, response_message).data());
 
                     send(socket, &buffer[0], buffer_size, 0);
                 }
@@ -146,13 +146,13 @@ namespace Server {
                 if (arr->size() < 3) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else if(! is_number(arr->at(2))) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
@@ -182,7 +182,7 @@ namespace Server {
                     }
 
                     bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(status).c_str());
+                    strcpy(buffer, make_response(status).data());
 
                     send(socket, &buffer[0], buffer_size, 0);
                 }
@@ -191,7 +191,7 @@ namespace Server {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
@@ -207,7 +207,7 @@ namespace Server {
                                 is_arguments_ok = false;
                                 bzero(buffer, buffer_size);
                                 buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").c_str());
+                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
                                 send(socket, &buffer[0], buffer_size, 0);
                             }
 
@@ -241,7 +241,7 @@ namespace Server {
                 if (arr->size() < 3) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
@@ -262,7 +262,7 @@ namespace Server {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").c_str());
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else {
@@ -278,7 +278,7 @@ namespace Server {
             else {
                 bzero(buffer, buffer_size);
                 buffer[0] = static_cast<char>(INCORRECT_COMMAND);
-                strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").c_str());
+                strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").data());
                 send(socket, &buffer[0], buffer_size, 0);
             }
 
@@ -315,7 +315,7 @@ namespace Server {
 
             sockaddr_in socket_address;
             socket_address.sin_family = AF_INET;
-            socket_address.sin_addr.s_addr = inet_addr(address.c_str());
+            socket_address.sin_addr.s_addr = inet_addr(address.data());
             socket_address.sin_port = htons(port);
 
             size_t socket_address_len = sizeof(socket_address);
