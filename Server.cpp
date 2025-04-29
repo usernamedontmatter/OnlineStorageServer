@@ -6,35 +6,35 @@
 #define DEFAULT_PORT 8000
 #define DEFAULT_BUFFER_SIZE 1024
 
-namespace Server {
-    enum class StartStatus {
-        SUCCESS,
+namespace server {
+    enum class start_status {
+        success,
 
         // Server Errors
-        SERVER_ALREADY_STARTED,
+        server_already_started,
 
         // Network Errors
-        SOCKET_CREATION_ERROR,
-        BINDING_ERROR,
-        LISTENING_ERROR,
+        socket_creation_error,
+        binding_error,
+        listening_error,
 
         // Input Errors
-        DIRECTORY_DONT_EXISTS,
+        directory_dont_exists,
     };
-    enum ResponseStatus {
-        OK = 1,
+    enum response_status {
+        ok = 1,
 
         // Client Errors
-        BAD_REQUEST = 2,
-        INCORRECT_ARGUMENTS = 3,
-        INCORRECT_COMMAND = 4,
-        COMMAND_CANT_BE_EXECUTED = 5,
+        bad_request = 2,
+        incorrect_arguments = 3,
+        incorrect_command = 4,
+        command_cant_be_executed = 5,
 
         // Server Errors
-        SERVER_ERROR = 128,
+        server_error = 128,
     };
 
-    class Server {
+    class server {
     private:
         std::filesystem::path base_directory;
         std::string address;
@@ -44,35 +44,35 @@ namespace Server {
         int socket_fd = 0;
         bool is_running;
 
-        static std::string make_response(const FileSystemManager::FileSystemStatus status, const std::string& response_message = "") {
+        static std::string make_response(const file_system_manager::file_system_status status, const std::string& response_message = "") {
             std::string response;
             switch (status) {
-                case FileSystemManager::FileSystemStatus::SUCCESS:
-                    response = { static_cast<char>(OK) };
+                case file_system_manager::file_system_status::SUCCESS:
+                    response = { static_cast<char>(ok) };
                     break;
                 default:
-                case FileSystemManager::FileSystemStatus::UnknownError:
-                    response = { static_cast<char>(SERVER_ERROR) };
+                case file_system_manager::file_system_status::UnknownError:
+                    response = { static_cast<char>(server_error) };
                     response += "Unknown error";
                     break;
-                case FileSystemManager::FileSystemStatus::INCORRECT_NAME:
-                    response = { static_cast<char>(COMMAND_CANT_BE_EXECUTED) };
+                case file_system_manager::file_system_status::INCORRECT_NAME:
+                    response = { static_cast<char>(command_cant_be_executed) };
                     response += "Incorrect name";
                     break;
-                case FileSystemManager::FileSystemStatus::FILE_DONT_EXISTS:
-                    response = { static_cast<char>(COMMAND_CANT_BE_EXECUTED) };
+                case file_system_manager::file_system_status::FILE_DONT_EXISTS:
+                    response = { static_cast<char>(command_cant_be_executed) };
                     response += "File don't exists";
                     break;
-                case FileSystemManager::FileSystemStatus::FILE_ALREADY_EXISTS:
-                    response = { static_cast<char>(COMMAND_CANT_BE_EXECUTED) };
+                case file_system_manager::file_system_status::FILE_ALREADY_EXISTS:
+                    response = { static_cast<char>(command_cant_be_executed) };
                     response += "File already exists";
                     break;
-                case FileSystemManager::FileSystemStatus::DIRECTORY_DONT_EXISTS:
-                    response = { static_cast<char>(COMMAND_CANT_BE_EXECUTED) };
+                case file_system_manager::file_system_status::DIRECTORY_DONT_EXISTS:
+                    response = { static_cast<char>(command_cant_be_executed) };
                     response += "Directory don't exists";
                     break;
-                case FileSystemManager::FileSystemStatus::DIRECTORY_ALREADY_EXISTS:
-                    response = { static_cast<char>(COMMAND_CANT_BE_EXECUTED) };
+                case file_system_manager::file_system_status::DIRECTORY_ALREADY_EXISTS:
+                    response = { static_cast<char>(command_cant_be_executed) };
                     response += "Directory already exists";
                     break;
             }
@@ -91,14 +91,14 @@ namespace Server {
             const std::vector<std::string>* arr = split_with_delimiter_removing(&request);
             if (arr->empty()) {
                 bzero(buffer, buffer_size);
-                buffer[0] = static_cast<char>(INCORRECT_COMMAND);
+                buffer[0] = static_cast<char>(incorrect_command);
                 strcpy(buffer + 1, "Request must contain command");
                 write(socket, &buffer[0], buffer_size);
             }
             else if (arr->at(0) == "show_files" || arr->at(0) == "delete") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());+
                     write(socket, &buffer[0], buffer_size);
                 }
@@ -107,13 +107,13 @@ namespace Server {
                     path += "/" + arr->at(1);
                     path = path.lexically_normal();
 
-                    FileSystemManager::FileSystemStatus status;
+                    file_system_manager::file_system_status status;
                     std::string response_message;
                     if (arr->at(0) == "show_files") {
                         std::list<std::filesystem::directory_entry> files;
-                        status = FileSystemManager::FileSystemCommands::ShowFiles(&path, files);
+                        status = file_system_manager::file_system_commands::show_files(&path, files);
 
-                        if (status == FileSystemManager::FileSystemStatus::SUCCESS) {
+                        if (status == file_system_manager::file_system_status::SUCCESS) {
                             response_message = "";
                             for (auto it = files.begin(); it != files.end(); ++it) {
                                if (it->is_directory()) {
@@ -130,10 +130,10 @@ namespace Server {
                     }
                     else if (arr->at(0) == "delete") {
                         response_message = "";
-                        status = FileSystemManager::FileSystemCommands::Delete(&path);
+                        status = file_system_manager::file_system_commands::delete_file(&path);
                     }
                     else {
-                        status = FileSystemManager::FileSystemStatus::UnknownError;
+                        status = file_system_manager::file_system_status::UnknownError;
                     }
 
                     bzero(buffer, buffer_size);
@@ -145,13 +145,13 @@ namespace Server {
             else if (arr->at(0) == "create_file" || arr->at(0) == "rewrite_file" || arr->at(0) == "create_or_rewrite_file") {
                 if (arr->size() < 3) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
                 else if(! is_number(arr->at(2))) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
@@ -167,18 +167,18 @@ namespace Server {
                         file_text += buffer;
                     }
 
-                    FileSystemManager::FileSystemStatus status;
+                    file_system_manager::file_system_status status;
                     if (arr->at(0) == "create_file") {
-                        status = FileSystemManager::FileSystemCommands::CreateFile(&path, &file_text);
+                        status = file_system_manager::file_system_commands::create_file(&path, &file_text);
                     }
                     else if (arr->at(0) == "rewrite_file") {
-                        status = FileSystemManager::FileSystemCommands::RewriteFile(&path, &file_text);
+                        status = file_system_manager::file_system_commands::rewrite_file(&path, &file_text);
                     }
                     else if (arr->at(0) == "create_or_rewrite_file") {
-                        status = FileSystemManager::FileSystemCommands::CreateOrRewriteFile(&path, &file_text);
+                        status = file_system_manager::file_system_commands::create_or_rewrite_file(&path, &file_text);
                     }
                     else {
-                        status = FileSystemManager::FileSystemStatus::UnknownError;
+                        status = file_system_manager::file_system_status::UnknownError;
                     }
 
                     bzero(buffer, buffer_size);
@@ -190,7 +190,7 @@ namespace Server {
             else if (arr->at(0) == "change_file_data" or arr->at(0) == "change_directory_data") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
@@ -206,7 +206,7 @@ namespace Server {
                             else {
                                 is_arguments_ok = false;
                                 bzero(buffer, buffer_size);
-                                buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                                buffer[0] = static_cast<char>(incorrect_arguments);
                                 strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
                                 send(socket, &buffer[0], buffer_size, 0);
                             }
@@ -220,15 +220,15 @@ namespace Server {
                         path += "/" + arr->at(1);
                         path = path.lexically_normal();
 
-                        FileSystemManager::FileSystemStatus status;
+                        file_system_manager::file_system_status status;
                         if (arr->at(0) == "change_file_data") {
-                            status = FileSystemManager::FileSystemCommands::ChangeFileData(&path, name.empty() ? nullptr : &name);
+                            status = file_system_manager::file_system_commands::change_file_data(&path, name.empty() ? nullptr : &name);
                         }
                         else if (arr->at(0) == "change_directory_data") {
-                            status = FileSystemManager::FileSystemCommands::ChangeDirectoryData(&path, name.empty() ? nullptr : &name);
+                            status = file_system_manager::file_system_commands::change_directory_data(&path, name.empty() ? nullptr : &name);
                         }
                         else {
-                            status = FileSystemManager::FileSystemStatus::UnknownError;
+                            status = file_system_manager::file_system_status::UnknownError;
                         }
 
                         std::string response = make_response(status);
@@ -240,7 +240,7 @@ namespace Server {
             else if(arr->at(0) == "replace_file") {
                 if (arr->size() < 3) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").data());
                     send(socket, &buffer[0], buffer_size, 0);
                 }
@@ -253,7 +253,7 @@ namespace Server {
                     new_path += "/" + arr->at(2);
                     new_path = new_path.lexically_normal();
 
-                    std::string response = make_response(FileSystemManager::FileSystemCommands::ReplaceFile(&old_path, &new_path));
+                    std::string response = make_response(file_system_manager::file_system_commands::replace_file(&old_path, &new_path));
 
                     write(socket, &response[0], buffer_size);
                 }
@@ -261,7 +261,7 @@ namespace Server {
             else if (arr->at(0) == "create_directory") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
+                    buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").data());
                     write(socket, &buffer[0], buffer_size);
                 }
@@ -270,14 +270,14 @@ namespace Server {
                     path += "/" + arr->at(1);
                     path = path.lexically_normal();
 
-                    std::string response = make_response(FileSystemManager::FileSystemCommands::CreateDirectory(&path));
+                    std::string response = make_response(file_system_manager::file_system_commands::create_directory(&path));
 
                     write(socket, &response[0], buffer_size);
                 }
             }
             else {
                 bzero(buffer, buffer_size);
-                buffer[0] = static_cast<char>(INCORRECT_COMMAND);
+                buffer[0] = static_cast<char>(incorrect_command);
                 strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").data());
                 write(socket, &buffer[0], buffer_size);
             }
@@ -290,28 +290,28 @@ namespace Server {
         void run(sockaddr_in socket_address, int socket_address_len) {
             while (is_running) {
                 int new_socket = accept(socket_fd, reinterpret_cast<sockaddr*>(&socket_address), reinterpret_cast<socklen_t*>(&socket_address_len));
-                std::thread(&Server::process_command, this, new_socket).detach();
+                std::thread(&server::process_command, this, new_socket).detach();
             }
         }
 
     public:
-        explicit Server(const std::string& base_directory, const std::string &address = DEFAULT_ADDRESS, const int port = DEFAULT_PORT, const long long buffer_size = DEFAULT_BUFFER_SIZE) {
+        explicit server(const std::string& base_directory, const std::string &address = DEFAULT_ADDRESS, const int port = DEFAULT_PORT, const long long buffer_size = DEFAULT_BUFFER_SIZE) {
             this->base_directory = base_directory + "/";
             this->address = address;
             this->port = port;
             this->buffer_size = buffer_size;
             this->is_running = false;
         }
-        ~Server() {
-            this->Stop();
+        ~server() {
+            this->stop();
         }
 
-        StartStatus Start() {
-            if (!std::filesystem::exists(base_directory)) return StartStatus::DIRECTORY_DONT_EXISTS;
-            if (is_running) return StartStatus::SERVER_ALREADY_STARTED;
+        start_status start() {
+            if (!std::filesystem::exists(base_directory)) return start_status::directory_dont_exists;
+            if (is_running) return start_status::server_already_started;
 
             socket_fd = socket(AF_INET , SOCK_STREAM , 0);
-            if(socket_fd == 0) return StartStatus::SOCKET_CREATION_ERROR;
+            if(socket_fd == 0) return start_status::socket_creation_error;
 
             sockaddr_in socket_address;
             socket_address.sin_family = AF_INET;
@@ -319,15 +319,15 @@ namespace Server {
             socket_address.sin_port = htons(port);
 
             size_t socket_address_len = sizeof(socket_address);
-            if (bind(socket_fd, reinterpret_cast<sockaddr*>(&socket_address), socket_address_len) < 0) return StartStatus::BINDING_ERROR;
-            if (listen(socket_fd, 3) < 0) return StartStatus::LISTENING_ERROR;
+            if (bind(socket_fd, reinterpret_cast<sockaddr*>(&socket_address), socket_address_len) < 0) return start_status::binding_error;
+            if (listen(socket_fd, 3) < 0) return start_status::listening_error;
 
             is_running = true;
-            std::thread(&Server::run, this, socket_address, socket_address_len).detach();
+            std::thread(&server::run, this, socket_address, socket_address_len).detach();
 
-            return StartStatus::SUCCESS;
+            return start_status::success;
         }
-        void Stop() {
+        void stop() {
             if (is_running) {
                 is_running = false;
                 close(socket_fd);

@@ -50,27 +50,27 @@ int main(int argc, char *argv[]){
     }
 
     if (is_argument_valid) {
-        Server::Server server = Server::Server(root_path, address, port);
+        server::server server = server::server(root_path, address, port);
 
-        switch (server.Start()) {
-            case Server::StartStatus::SUCCESS:
+        switch (server.start()) {
+            case server::start_status::success:
                 getchar();
 
-            server.Stop();
+            server.stop();
             break;
-            case Server::StartStatus::SERVER_ALREADY_STARTED:
+            case server::start_status::server_already_started:
                 std::cout << "Server already started" << std::endl;
             break;
-            case Server::StartStatus::SOCKET_CREATION_ERROR:
+            case server::start_status::socket_creation_error:
                 std::cout << "Failed to create socket" << std::endl;
             break;
-            case Server::StartStatus::BINDING_ERROR:
+            case server::start_status::binding_error:
                 std::cout << "Failed to bind socket" << std::endl;
             break;
-            case Server::StartStatus::LISTENING_ERROR:
+            case server::start_status::listening_error:
                 std::cout << "Failed of listening" << std::endl;
             break;
-            case Server::StartStatus::DIRECTORY_DONT_EXISTS:
+            case server::start_status::directory_dont_exists:
                 std::cout << "Directory don't exists" << std::endl;
             break;
         }
