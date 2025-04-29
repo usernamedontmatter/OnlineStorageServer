@@ -93,14 +93,14 @@ namespace Server {
                 bzero(buffer, buffer_size);
                 buffer[0] = static_cast<char>(INCORRECT_COMMAND);
                 strcpy(buffer + 1, "Request must contain command");
-                send(socket, &buffer[0], buffer_size, 0);
+                write(socket, &buffer[0], buffer_size);
             }
             else if (arr->at(0) == "show_files" || arr->at(0) == "delete") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());+
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else {
                     std::filesystem::path path = base_directory;
@@ -255,7 +255,7 @@ namespace Server {
 
                     std::string response = make_response(FileSystemManager::FileSystemCommands::ReplaceFile(&old_path, &new_path));
 
-                    send(socket, &response[0], buffer_size, 0);
+                    write(socket, &response[0], buffer_size);
                 }
             }
             else if (arr->at(0) == "create_directory") {
@@ -263,7 +263,7 @@ namespace Server {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(INCORRECT_ARGUMENTS);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else {
                     std::filesystem::path path = base_directory;
@@ -272,14 +272,14 @@ namespace Server {
 
                     std::string response = make_response(FileSystemManager::FileSystemCommands::CreateDirectory(&path));
 
-                    send(socket, &response[0], buffer_size, 0);
+                    write(socket, &response[0], buffer_size);
                 }
             }
             else {
                 bzero(buffer, buffer_size);
                 buffer[0] = static_cast<char>(INCORRECT_COMMAND);
                 strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").data());
-                send(socket, &buffer[0], buffer_size, 0);
+                write(socket, &buffer[0], buffer_size);
             }
 
             close(socket);
