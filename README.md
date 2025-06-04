@@ -45,7 +45,7 @@ create_or_rewrite_file path_to_file length
 * path_to_file - path to file
 * length - length of file value
 * After sending the command client must send value of file
-  Rewrite file or create it if it doesn't exists
+  Rewrite file or create it if it doesn't exist
 
 
 ```
