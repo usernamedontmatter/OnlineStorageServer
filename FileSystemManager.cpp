@@ -43,7 +43,7 @@ namespace file_system_manager {
             return file_system_status::success;
         }
         static file_system_status rewrite_file(const std::filesystem::path* file_path, const std::string* text) {
-            if (! exists(*file_path)) return file_system_status::file_dont_exists;
+            if (! exists(*file_path) || std::filesystem::is_directory(*file_path)) return file_system_status::file_dont_exists;
 
             std::ofstream file = std::ofstream{*file_path};
             file << *text << std::endl;
@@ -59,7 +59,7 @@ namespace file_system_manager {
             return file_system_status::success;
         }
         static file_system_status change_file_data(const std::filesystem::path* file_path, const std::string *name=nullptr) {
-            if (! exists(*file_path)) return file_system_status::file_dont_exists;
+            if (! exists(*file_path) || std::filesystem::is_directory(*file_path)) return file_system_status::file_dont_exists;
 
             if (name != nullptr) {
                 std::rename(file_path->lexically_normal().string().c_str(), (file_path->lexically_normal().parent_path()/ *name).string().c_str());
