@@ -146,7 +146,7 @@ namespace server {
                         bzero(buffer, buffer_size);
                         strcpy(buffer, response.substr(i, buffer_size).data());
 
-                        send(socket, &buffer[0], buffer_size, 0);
+                        write(socket, &buffer[0], buffer_size);
                     }
                 }
             }
@@ -155,13 +155,13 @@ namespace server {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else if(! is_number(arr->at(2))) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else {
                     const long long file_size = stoll(arr->at(2));
@@ -192,7 +192,7 @@ namespace server {
                     bzero(buffer, buffer_size);
                     strcpy(buffer, make_response(status).data());
 
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
             }
             else if (arr->at(0) == "change_file_data" or arr->at(0) == "change_directory_data") {
@@ -200,7 +200,7 @@ namespace server {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else {
                     bool is_arguments_ok = true;
@@ -216,7 +216,7 @@ namespace server {
                                 bzero(buffer, buffer_size);
                                 buffer[0] = static_cast<char>(incorrect_arguments);
                                 strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
-                                send(socket, &buffer[0], buffer_size, 0);
+                                write(socket, &buffer[0], buffer_size);
                             }
 
                             break;
@@ -239,9 +239,10 @@ namespace server {
                             status = file_system_manager::file_system_status::unknown_error;
                         }
 
-                        std::string response = make_response(status);
+                        bzero(buffer, buffer_size);
+                        strcpy(buffer, make_response(status).data());
 
-                        send(socket, &response[0], buffer_size, 0);
+                        write(socket, &buffer[0], buffer_size);
                     }
                 }
             }
@@ -250,7 +251,7 @@ namespace server {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
                     strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").data());
-                    send(socket, &buffer[0], buffer_size, 0);
+                    write(socket, &buffer[0], buffer_size);
                 }
                 else {
                     std::filesystem::path old_path = base_directory;
@@ -261,9 +262,10 @@ namespace server {
                     new_path += "/" + arr->at(2);
                     new_path = new_path.lexically_normal();
 
-                    std::string response = make_response(file_system_manager::file_system_commands::replace_file(&old_path, &new_path));
+                    bzero(buffer, buffer_size);
+                    strcpy(buffer, make_response(file_system_manager::file_system_commands::replace_file(&old_path, &new_path)).data());
 
-                    write(socket, &response[0], buffer_size);
+                    write(socket, &buffer[0], buffer_size);
                 }
             }
             else if (arr->at(0) == "create_directory") {
@@ -278,9 +280,10 @@ namespace server {
                     path += "/" + arr->at(1);
                     path = path.lexically_normal();
 
-                    std::string response = make_response(file_system_manager::file_system_commands::create_directory(&path));
+                    bzero(buffer, buffer_size);
+                    strcpy(buffer, make_response(file_system_manager::file_system_commands::create_directory(&path)).data());
 
-                    write(socket, &response[0], buffer_size);
+                    write(socket, &buffer[0], buffer_size);
                 }
             }
             else {
