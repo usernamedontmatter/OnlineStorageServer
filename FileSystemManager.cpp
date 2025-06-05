@@ -24,6 +24,20 @@ namespace file_system_manager {
 
             return file_system_status::success;
         }
+        static file_system_status read_file(const std::filesystem::path* path, std::string& file_text) {
+            if (! exists(*path) || std::filesystem::is_directory(*path)) return file_system_status::file_dont_exists;
+
+            std::ifstream file = std::ifstream{*path};
+            file_text = "";
+            std::string line;
+            while(getline(file, line)) {
+                file_text.append(line + "\n");
+            }
+            file_text.pop_back();
+            file.close();
+
+            return file_system_status::success;
+        }
         static file_system_status delete_file(const std::filesystem::path* path) {
             if (! exists(*path)) return file_system_status::file_dont_exists;
 

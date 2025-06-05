@@ -15,6 +15,11 @@ show_files path
 * path - path to viewed directory
 Return list of pairs "type name" with "directory" or "file" as type
 
+```
+read path
+```
+* path - path to file
+Return file value
 
 ```
 delete path
