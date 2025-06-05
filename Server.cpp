@@ -140,10 +140,14 @@ namespace server {
                         status = file_system_manager::file_system_status::unknown_error;
                     }
 
-                    bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(status, response_message).data());
+                    std::string response = make_response(status, response_message);
 
-                    send(socket, &buffer[0], buffer_size, 0);
+                    for (long long i = 0; i < response.length(); i += buffer_size) {
+                        bzero(buffer, buffer_size);
+                        strcpy(buffer, response.substr(i, buffer_size).data());
+
+                        send(socket, &buffer[0], buffer_size, 0);
+                    }
                 }
             }
             else if (arr->at(0) == "create_file" || arr->at(0) == "rewrite_file" || arr->at(0) == "create_or_rewrite_file") {
