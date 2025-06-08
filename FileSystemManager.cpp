@@ -33,7 +33,7 @@ namespace file_system_manager {
             while(getline(file, line)) {
                 file_text.append(line + "\n");
             }
-            file_text.pop_back();
+            if (!file_text.empty()) file_text.pop_back();
             file.close();
 
             return file_system_status::success;
