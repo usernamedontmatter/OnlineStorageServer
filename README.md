@@ -52,18 +52,27 @@ create_or_rewrite_file path_to_file length
 * After sending the command client must send value of file
   Rewrite file or create it if it doesn't exist
 
-
 ```
-change_file_data path --name new_name
+change_file_data path --name new_name --dir new_directory
 ```
 * path - path to file
 * new_name - new name of file
-Change file data
+* new_directory - parent directory path
+  Change file or directory data
 
+```
+change_file_data path --name new_name --dir new_directory
+```
+* path - path to file
+* new_name - new name of file
+* new_directory - parent directory path
+Change file data
 
 ```
 replace_file old_path new_path
 ```
+Outdated command, use change_data instead
+
 * old_path - path to file that must be replaced
 * new_path - new file place
 Replace file
@@ -75,8 +84,9 @@ create_directory path_to_directory
 Create new file
 
 ```
-change_directory_name path --name new_name
+change_directory_name path --name new_name --dir new_directory 
 ```
 * path - path to directory
 * new_name - new name of directory
+* new_directory - parent directory path
 Change directory data

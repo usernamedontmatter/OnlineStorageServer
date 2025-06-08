@@ -205,6 +205,7 @@ namespace server {
                 else {
                     bool is_arguments_ok = true;
                     std::string name;
+                    std::string directory;
                     for (auto it = arr->begin(); it != arr->end(); ++it) {
                         if (*it == "--name") {
                             ++it;
@@ -221,6 +222,28 @@ namespace server {
 
                             break;
                         }
+                        else if (*it == "--dir") {
+                            ++it;
+                            if (it != arr->end()) {
+                                directory = *it;
+                            }
+                            else {
+                                is_arguments_ok = false;
+                                bzero(buffer, buffer_size);
+                                buffer[0] = static_cast<char>(incorrect_arguments);
+                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to new directory after --dir parameter").data());
+                                write(socket, &buffer[0], buffer_size);
+                            }
+
+                            break;
+                        }
+                    }
+
+                    if (!directory.empty()) {
+                        std::filesystem::path relative_path = base_directory;
+                        relative_path += "/" + directory;
+                        relative_path = relative_path.lexically_normal();
+                        directory = relative_path.generic_string();
                     }
 
                     if (is_arguments_ok) {
@@ -230,13 +253,13 @@ namespace server {
 
                         file_system_manager::file_system_status status;
                         if (arr->at(0) == "change_data") {
-                            status = file_system_manager::file_system_commands::change_data(&path, name.empty() ? nullptr : &name);
+                            status = file_system_manager::file_system_commands::change_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else if (arr->at(0) == "change_file_data") {
-                            status = file_system_manager::file_system_commands::change_file_data(&path, name.empty() ? nullptr : &name);
+                            status = file_system_manager::file_system_commands::change_file_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else if (arr->at(0) == "change_directory_data") {
-                            status = file_system_manager::file_system_commands::change_directory_data(&path, name.empty() ? nullptr : &name);
+                            status = file_system_manager::file_system_commands::change_directory_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else {
                             status = file_system_manager::file_system_status::unknown_error;
