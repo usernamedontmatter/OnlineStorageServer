@@ -72,8 +72,8 @@ namespace file_system_manager {
 
             return file_system_status::success;
         }
-        static file_system_status change_file_data(const std::filesystem::path* file_path, const std::string *name=nullptr) {
-            if (! exists(*file_path) || std::filesystem::is_directory(*file_path)) return file_system_status::file_dont_exists;
+        static file_system_status change_data(const std::filesystem::path* file_path, const std::string *name=nullptr) {
+            if (! exists(*file_path)) return file_system_status::file_dont_exists;
 
             if (name != nullptr) {
                 std::rename(file_path->lexically_normal().string().c_str(), (file_path->lexically_normal().parent_path()/ *name).string().c_str());
@@ -81,14 +81,15 @@ namespace file_system_manager {
 
             return file_system_status::success;
         }
+        static file_system_status change_file_data(const std::filesystem::path* file_path, const std::string *name=nullptr) {
+            if (! exists(*file_path) || std::filesystem::is_directory(*file_path)) return file_system_status::file_dont_exists;
+
+            return change_data(file_path, name);
+        }
         static file_system_status change_directory_data(const std::filesystem::path* file_path, const std::string *name=nullptr) {
             if (! exists(*file_path)) return file_system_status::directory_dont_exists;
 
-            if (name != nullptr) {
-                std::rename(file_path->lexically_normal().string().c_str(), (file_path->lexically_normal().parent_path()/ *name).string().c_str());
-            }
-
-            return file_system_status::success;
+            return change_data(file_path, name);
         }
         static file_system_status replace_file(const std::filesystem::path* old_file_path, const std::filesystem::path* new_file_path) {
             if (! exists(*old_file_path)) return file_system_status::file_dont_exists;

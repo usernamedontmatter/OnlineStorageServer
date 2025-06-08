@@ -195,7 +195,7 @@ namespace server {
                     write(socket, &buffer[0], buffer_size);
                 }
             }
-            else if (arr->at(0) == "change_file_data" or arr->at(0) == "change_directory_data") {
+            else if (arr->at(0) == "change_data" or arr->at(0) == "change_file_data" or arr->at(0) == "change_directory_data") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
@@ -229,7 +229,10 @@ namespace server {
                         path = path.lexically_normal();
 
                         file_system_manager::file_system_status status;
-                        if (arr->at(0) == "change_file_data") {
+                        if (arr->at(0) == "change_data") {
+                            status = file_system_manager::file_system_commands::change_data(&path, name.empty() ? nullptr : &name);
+                        }
+                        else if (arr->at(0) == "change_file_data") {
                             status = file_system_manager::file_system_commands::change_file_data(&path, name.empty() ? nullptr : &name);
                         }
                         else if (arr->at(0) == "change_directory_data") {
