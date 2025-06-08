@@ -195,7 +195,7 @@ namespace server {
                     write(socket, &buffer[0], buffer_size);
                 }
             }
-            else if (arr->at(0) == "change_data" or arr->at(0) == "change_file_data" or arr->at(0) == "change_directory_data") {
+            else if (arr->at(0) == "change_data" || arr->at(0) == "change_file_data" || arr->at(0) == "change_directory_data") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
