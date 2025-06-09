@@ -53,6 +53,15 @@ create_or_rewrite_file path_to_file length
   Rewrite file or create it if it doesn't exist
 
 ```
+change_data old_path --name new_name --dir new_directory
+```
+
+* old_path - path to file
+* new_name - new file name
+* new_directory - new file parent directory
+  Change file data
+
+```
 change_file_data path --name new_name --dir new_directory
 ```
 * path - path to file
@@ -69,15 +78,6 @@ change_file_data path --name new_name --dir new_directory
 Change file data
 
 ```
-replace_file old_path new_path
-```
-Outdated command, use change_data instead
-
-* old_path - path to file that must be replaced
-* new_path - new file place
-Replace file
-
-```
 create_directory path_to_directory
 ```
 * path_to_directory - path to directory that must be created
@@ -90,3 +90,12 @@ change_directory_name path --name new_name --dir new_directory
 * new_name - new name of directory
 * new_directory - parent directory path
 Change directory data
+
+```
+replace_file old_path new_path
+```
+Outdated command, use change_data instead
+
+* old_path - path to file that must be replaced
+* new_path - new file place
+  Replace file
