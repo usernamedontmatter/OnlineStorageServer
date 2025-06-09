@@ -219,8 +219,6 @@ namespace server {
                                 strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
                                 write(socket, &buffer[0], buffer_size);
                             }
-
-                            break;
                         }
                         else if (*it == "--dir") {
                             ++it;
@@ -234,8 +232,6 @@ namespace server {
                                 strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to new directory after --dir parameter").data());
                                 write(socket, &buffer[0], buffer_size);
                             }
-
-                            break;
                         }
                     }
 
