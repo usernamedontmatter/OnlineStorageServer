@@ -77,8 +77,12 @@ namespace file_system_manager {
 
             std::filesystem::path parent_path = new_directory == nullptr ? file_path->lexically_normal().parent_path().string() : *new_directory;
             std::filesystem::path name = new_name == nullptr ? file_path->lexically_normal().filename().string() : *new_name;
+;
+            std::filesystem::path new_path = (parent_path/ name);
 
-            std::rename(file_path->lexically_normal().string().c_str(), (parent_path/ name).string().c_str());
+            if (exists(new_path)) return file_system_status::file_already_exists;
+
+            std::rename(file_path->lexically_normal().string().c_str(), new_path.string().c_str());
 
             return file_system_status::success;
         }
