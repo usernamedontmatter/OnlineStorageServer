@@ -29,6 +29,7 @@ namespace server {
         incorrect_arguments = 3,
         incorrect_command = 4,
         command_cant_be_executed = 5,
+        directory_not_empty = 6,
 
         // Server Errors
         server_error = 128,
@@ -81,7 +82,7 @@ namespace server {
                     response += "Directory already exists";
                     break;
                 case file_system_manager::file_system_status::directory_not_empty:
-                    response = { static_cast<char>(command_cant_be_executed) };
+                    response = { static_cast<char>(directory_not_empty) };
                     response += "Directory isn't empty";
                     break;
             }
