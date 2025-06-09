@@ -80,6 +80,10 @@ namespace server {
                     response = { static_cast<char>(command_cant_be_executed) };
                     response += "Directory already exists";
                     break;
+                case file_system_manager::file_system_status::directory_not_empty:
+                    response = { static_cast<char>(command_cant_be_executed) };
+                    response += "Directory isn't empty";
+                    break;
             }
 
             response += response_message;
@@ -100,7 +104,7 @@ namespace server {
                 strcpy(buffer + 1, "Request must contain command");
                 write(socket, &buffer[0], buffer_size);
             }
-            else if (arr->at(0) == "show_files" || arr->at(0) == "read" || arr->at(0) == "delete") {
+            else if (arr->at(0) == "show_files" || arr->at(0) == "read" || arr->at(0) == "delete" || arr->at(0) == "delete_all") {
                 if (arr->size() < 2) {
                     bzero(buffer, buffer_size);
                     buffer[0] = static_cast<char>(incorrect_arguments);
@@ -140,6 +144,10 @@ namespace server {
                     else if (arr->at(0) == "delete") {
                         response_message = "";
                         status = file_system_manager::file_system_commands::delete_file(path);
+                    }
+                    else if (arr->at(0) == "delete_all") {
+                        response_message = "";
+                        status = file_system_manager::file_system_commands::delete_all(path);
                     }
                     else {
                         status = file_system_manager::file_system_status::unknown_error;

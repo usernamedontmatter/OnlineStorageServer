@@ -15,6 +15,8 @@ namespace file_system_manager {
 
         directory_dont_exists,
         directory_already_exists,
+
+        directory_not_empty,
     };
     struct file_system_commands {
     private:
@@ -49,8 +51,23 @@ namespace file_system_manager {
         static file_system_status delete_file(const std::filesystem::path& path) {
             if (! exists(path)) return file_system_status::file_dont_exists;
 
-            std::remove(path.string().c_str());
+            if (std::filesystem::is_directory(path) && !std::filesystem::is_empty(path)) {
+                return file_system_status::directory_not_empty;
+            }
 
+            std::remove(path.c_str());
+            return file_system_status::success;
+        }
+        static file_system_status delete_all(const std::filesystem::path& path) {
+            if (! exists(path)) return file_system_status::file_dont_exists;
+
+            if (std::filesystem::is_directory(path) && !std::filesystem::is_empty(path)) {
+                for (const auto& entry : std::filesystem::directory_iterator{path}) {
+                    delete_all(entry.path());
+                }
+            }
+
+            std::remove(path.c_str());
             return file_system_status::success;
         }
 

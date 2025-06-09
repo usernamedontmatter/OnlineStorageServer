@@ -28,6 +28,12 @@ delete path
 Delete the specified object
 
 ```
+delete_all path
+```
+* path - path to object that must be deleted
+  Delete the specified object and all objects that it contains if it's directory
+
+```
 create_file path_to_file length
 ```
 * path_to_file - path to new file
