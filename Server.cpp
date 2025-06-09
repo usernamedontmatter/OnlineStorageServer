@@ -116,7 +116,7 @@ namespace server {
                     std::string response_message;
                     if (arr->at(0) == "show_files") {
                         std::list<std::filesystem::directory_entry> files;
-                        status = file_system_manager::file_system_commands::show_files(&path, files);
+                        status = file_system_manager::file_system_commands::show_files(path, files);
 
                         if (status == file_system_manager::file_system_status::success) {
                             response_message = "";
@@ -135,11 +135,11 @@ namespace server {
                     }
                     else if (arr->at(0) == "read") {
                         response_message = "";
-                        status = file_system_manager::file_system_commands::read_file(&path, response_message);
+                        status = file_system_manager::file_system_commands::read_file(path, response_message);
                     }
                     else if (arr->at(0) == "delete") {
                         response_message = "";
-                        status = file_system_manager::file_system_commands::delete_file(&path);
+                        status = file_system_manager::file_system_commands::delete_file(path);
                     }
                     else {
                         status = file_system_manager::file_system_status::unknown_error;
@@ -182,13 +182,13 @@ namespace server {
 
                     file_system_manager::file_system_status status;
                     if (arr->at(0) == "create_file") {
-                        status = file_system_manager::file_system_commands::create_file(&path, &file_text);
+                        status = file_system_manager::file_system_commands::create_file(path, file_text);
                     }
                     else if (arr->at(0) == "rewrite_file") {
-                        status = file_system_manager::file_system_commands::rewrite_file(&path, &file_text);
+                        status = file_system_manager::file_system_commands::rewrite_file(path, file_text);
                     }
                     else if (arr->at(0) == "create_or_rewrite_file") {
-                        status = file_system_manager::file_system_commands::create_or_rewrite_file(&path, &file_text);
+                        status = file_system_manager::file_system_commands::create_or_rewrite_file(path, file_text);
                     }
                     else {
                         status = file_system_manager::file_system_status::unknown_error;
@@ -262,13 +262,13 @@ namespace server {
 
                         file_system_manager::file_system_status status;
                         if (arr->at(0) == "change_data") {
-                            status = file_system_manager::file_system_commands::change_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            status = file_system_manager::file_system_commands::change_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else if (arr->at(0) == "change_file_data") {
-                            status = file_system_manager::file_system_commands::change_file_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            status = file_system_manager::file_system_commands::change_file_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else if (arr->at(0) == "change_directory_data") {
-                            status = file_system_manager::file_system_commands::change_directory_data(&path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            status = file_system_manager::file_system_commands::change_directory_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
                         }
                         else {
                             status = file_system_manager::file_system_status::unknown_error;
@@ -298,7 +298,7 @@ namespace server {
                     new_path = new_path.lexically_normal();
 
                     bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(file_system_manager::file_system_commands::replace_file(&old_path, &new_path)).data());
+                    strcpy(buffer, make_response(file_system_manager::file_system_commands::replace_file(old_path, new_path)).data());
 
                     write(socket, &buffer[0], buffer_size);
                 }
@@ -316,7 +316,7 @@ namespace server {
                     path = path.lexically_normal();
 
                     bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(file_system_manager::file_system_commands::create_directory(&path)).data());
+                    strcpy(buffer, make_response(file_system_manager::file_system_commands::create_directory(path)).data());
 
                     write(socket, &buffer[0], buffer_size);
                 }
