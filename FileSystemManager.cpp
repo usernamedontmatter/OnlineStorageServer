@@ -1,10 +1,13 @@
 #include "HEADERS.h"
 
+#define FORBIDDEN_FILENAME_CHARACTERS "\\/:*?\"<>|"
+
 namespace file_system_manager {
     enum class file_system_status {
         success,
         unknown_error,
 
+        incorrect_path,
         incorrect_name,
 
         file_dont_exists,
@@ -14,6 +17,11 @@ namespace file_system_manager {
         directory_already_exists,
     };
     struct file_system_commands {
+    private:
+        static bool is_valid_name(const std::string& name) {
+            return !(name.find_first_of(FORBIDDEN_FILENAME_CHARACTERS) != std::string::npos || std::filesystem::path(name).has_parent_path());
+        }
+    public:
         static file_system_status show_files(const std::filesystem::path* dir_path, std::list<std::filesystem::directory_entry>& files) {
             if (! is_directory(*dir_path)) return file_system_status::directory_dont_exists;
 
@@ -74,6 +82,7 @@ namespace file_system_manager {
         }
         static file_system_status change_data(const std::filesystem::path* file_path, const std::string *new_name=nullptr, const std::string* new_directory=nullptr) {
             if (! exists(*file_path)) return file_system_status::file_dont_exists;
+            if (new_name != nullptr and !is_valid_name(*new_name)) return file_system_status::incorrect_name;
 
             std::filesystem::path parent_path = new_directory == nullptr ? file_path->lexically_normal().parent_path().string() : *new_directory;
             std::filesystem::path name = new_name == nullptr ? file_path->lexically_normal().filename().string() : *new_name;
@@ -97,6 +106,15 @@ namespace file_system_manager {
             return change_data(file_path, name, new_directory);
         }
 
+        // Directories
+        static file_system_status create_directory(const std::filesystem::path* dir_path) {
+            if (exists(*dir_path)) return file_system_status::directory_already_exists;
+
+            std::filesystem::create_directories(*dir_path);
+
+            return file_system_status::success;
+        }
+
         // Outdated function
         static file_system_status replace_file(const std::filesystem::path* old_file_path, const std::filesystem::path* new_file_path) {
             if (! exists(*old_file_path)) return file_system_status::file_dont_exists;
@@ -107,14 +125,7 @@ namespace file_system_manager {
 
             return file_system_status::success;
         }
-
-        // Directories
-        static file_system_status create_directory(const std::filesystem::path* dir_path) {
-            if (exists(*dir_path)) return file_system_status::directory_already_exists;
-
-            std::filesystem::create_directories(*dir_path);
-
-            return file_system_status::success;
-        }
     };
 }
+
+#undef FORBIDDEN_FILENAME_CHARACTERS;

@@ -44,6 +44,11 @@ namespace server {
         int socket_fd = 0;
         bool is_running;
 
+        static bool is_subpath(const std::filesystem::path& path, std::filesystem::path subpath) {
+            if (!subpath.has_filename()) subpath = subpath.parent_path();
+            return std::mismatch(subpath.begin(), subpath.end(), path.begin(), path.end()).first == subpath.end();
+        }
+
         static std::string make_response(const file_system_manager::file_system_status status, const std::string& response_message = "") {
             std::string response;
             switch (status) {
@@ -240,6 +245,14 @@ namespace server {
                         relative_path += "/" + directory;
                         relative_path = relative_path.lexically_normal();
                         directory = relative_path.generic_string();
+
+                        if (!is_subpath(directory, base_directory)) {
+                            is_arguments_ok = false;
+                            bzero(buffer, buffer_size);
+                            buffer[0] = static_cast<char>(incorrect_arguments);
+                            strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have parent directory path higher than root").data());
+                            write(socket, &buffer[0], buffer_size);
+                        }
                     }
 
                     if (is_arguments_ok) {
