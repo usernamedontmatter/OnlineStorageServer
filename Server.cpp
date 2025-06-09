@@ -95,189 +95,110 @@ namespace server {
         void process_command(const int socket) const {
             auto buffer = new char[buffer_size];
 
-            read(socket, &buffer[0], buffer_size);
+            try {
+                read(socket, &buffer[0], buffer_size);
 
-            std::string request = buffer;
-            const std::vector<std::string>* arr = split_with_delimiter_removing(&request);
-            if (arr->empty()) {
-                bzero(buffer, buffer_size);
-                buffer[0] = static_cast<char>(incorrect_command);
-                strcpy(buffer + 1, "Request must contain command");
-                write(socket, &buffer[0], buffer_size);
-            }
-            else if (arr->at(0) == "show_files" || arr->at(0) == "read" || arr->at(0) == "delete" || arr->at(0) == "delete_all") {
-                if (arr->size() < 2) {
+                std::string request = buffer;
+                const std::vector<std::string>* arr = split_with_delimiter_removing(&request);
+                if (arr->empty()) {
                     bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());+
+                    buffer[0] = static_cast<char>(incorrect_command);
+                    strcpy(buffer + 1, "Request must contain command");
                     write(socket, &buffer[0], buffer_size);
                 }
-                else {
-                    std::filesystem::path path = base_directory;
-                    path += "/" + arr->at(1);
-                    path = path.lexically_normal();
-
-                    file_system_manager::file_system_status status;
-                    std::string response_message;
-                    if (arr->at(0) == "show_files") {
-                        std::list<std::filesystem::directory_entry> files;
-                        status = file_system_manager::file_system_commands::show_files(path, files);
-
-                        if (status == file_system_manager::file_system_status::success) {
-                            response_message = "";
-                            for (auto it = files.begin(); it != files.end(); ++it) {
-                               if (it->is_directory()) {
-                                   response_message += "directory ";
-                               }
-                               else {
-                                   response_message += "file ";
-                               }
-
-                               response_message += it->path().filename().string();
-                               response_message += " ";
-                           }
-                        }
-                    }
-                    else if (arr->at(0) == "read") {
-                        response_message = "";
-                        status = file_system_manager::file_system_commands::read_file(path, response_message);
-                    }
-                    else if (arr->at(0) == "delete") {
-                        response_message = "";
-                        status = file_system_manager::file_system_commands::delete_file(path);
-                    }
-                    else if (arr->at(0) == "delete_all") {
-                        response_message = "";
-                        status = file_system_manager::file_system_commands::delete_all(path);
-                    }
-                    else {
-                        status = file_system_manager::file_system_status::unknown_error;
-                    }
-
-                    std::string response = make_response(status, response_message);
-
-                    for (long long i = 0; i < response.length(); i += buffer_size) {
+                else if (arr->at(0) == "show_files" || arr->at(0) == "read" || arr->at(0) == "delete" || arr->at(0) == "delete_all") {
+                    if (arr->size() < 2) {
                         bzero(buffer, buffer_size);
-                        strcpy(buffer, response.substr(i, buffer_size).data());
-
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());+
                         write(socket, &buffer[0], buffer_size);
                     }
-                }
-            }
-            else if (arr->at(0) == "create_file" || arr->at(0) == "rewrite_file" || arr->at(0) == "create_or_rewrite_file") {
-                if (arr->size() < 3) {
-                    bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").data());
-                    write(socket, &buffer[0], buffer_size);
-                }
-                else if(! is_number(arr->at(2))) {
-                    bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").data());
-                    write(socket, &buffer[0], buffer_size);
-                }
-                else {
-                    const long long file_size = stoll(arr->at(2));
-                    std::filesystem::path path = base_directory;
-                    path += "/" + arr->at(1);
-                    path = path.lexically_normal();
-
-                    std::string file_text;
-                    for (int i = 0; i < div_with_round_up(file_size, buffer_size); i++) {
-                        read(socket, buffer, buffer_size);
-                        file_text += buffer;
-                    }
-
-                    file_system_manager::file_system_status status;
-                    if (arr->at(0) == "create_file") {
-                        status = file_system_manager::file_system_commands::create_file(path, file_text);
-                    }
-                    else if (arr->at(0) == "rewrite_file") {
-                        status = file_system_manager::file_system_commands::rewrite_file(path, file_text);
-                    }
-                    else if (arr->at(0) == "create_or_rewrite_file") {
-                        status = file_system_manager::file_system_commands::create_or_rewrite_file(path, file_text);
-                    }
                     else {
-                        status = file_system_manager::file_system_status::unknown_error;
-                    }
-
-                    bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(status).data());
-
-                    write(socket, &buffer[0], buffer_size);
-                }
-            }
-            else if (arr->at(0) == "change_data" || arr->at(0) == "change_file_data" || arr->at(0) == "change_directory_data") {
-                if (arr->size() < 2) {
-                    bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
-                    write(socket, &buffer[0], buffer_size);
-                }
-                else {
-                    bool is_arguments_ok = true;
-                    std::string name;
-                    std::string directory;
-                    for (auto it = arr->begin(); it != arr->end(); ++it) {
-                        if (*it == "--name") {
-                            ++it;
-                            if (it != arr->end()) {
-                                name = *it;
-                            }
-                            else {
-                                is_arguments_ok = false;
-                                bzero(buffer, buffer_size);
-                                buffer[0] = static_cast<char>(incorrect_arguments);
-                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
-                                write(socket, &buffer[0], buffer_size);
-                            }
-                        }
-                        else if (*it == "--dir") {
-                            ++it;
-                            if (it != arr->end()) {
-                                directory = *it;
-                            }
-                            else {
-                                is_arguments_ok = false;
-                                bzero(buffer, buffer_size);
-                                buffer[0] = static_cast<char>(incorrect_arguments);
-                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to new directory after --dir parameter").data());
-                                write(socket, &buffer[0], buffer_size);
-                            }
-                        }
-                    }
-
-                    if (!directory.empty()) {
-                        std::filesystem::path relative_path = base_directory;
-                        relative_path += "/" + directory;
-                        relative_path = relative_path.lexically_normal();
-                        directory = relative_path.generic_string();
-
-                        if (!is_subpath(directory, base_directory)) {
-                            is_arguments_ok = false;
-                            bzero(buffer, buffer_size);
-                            buffer[0] = static_cast<char>(incorrect_arguments);
-                            strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have parent directory path higher than root").data());
-                            write(socket, &buffer[0], buffer_size);
-                        }
-                    }
-
-                    if (is_arguments_ok) {
                         std::filesystem::path path = base_directory;
                         path += "/" + arr->at(1);
                         path = path.lexically_normal();
 
                         file_system_manager::file_system_status status;
-                        if (arr->at(0) == "change_data") {
-                            status = file_system_manager::file_system_commands::change_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                        std::string response_message;
+                        if (arr->at(0) == "show_files") {
+                            std::list<std::filesystem::directory_entry> files;
+                            status = file_system_manager::file_system_commands::show_files(path, files);
+
+                            if (status == file_system_manager::file_system_status::success) {
+                                response_message = "";
+                                for (auto it = files.begin(); it != files.end(); ++it) {
+                                   if (it->is_directory()) {
+                                       response_message += "directory ";
+                                   }
+                                   else {
+                                       response_message += "file ";
+                                   }
+
+                                   response_message += it->path().filename().string();
+                                   response_message += " ";
+                               }
+                            }
                         }
-                        else if (arr->at(0) == "change_file_data") {
-                            status = file_system_manager::file_system_commands::change_file_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                        else if (arr->at(0) == "read") {
+                            response_message = "";
+                            status = file_system_manager::file_system_commands::read_file(path, response_message);
                         }
-                        else if (arr->at(0) == "change_directory_data") {
-                            status = file_system_manager::file_system_commands::change_directory_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                        else if (arr->at(0) == "delete") {
+                            response_message = "";
+                            status = file_system_manager::file_system_commands::delete_file(path);
+                        }
+                        else if (arr->at(0) == "delete_all") {
+                            response_message = "";
+                            status = file_system_manager::file_system_commands::delete_all(path);
+                        }
+                        else {
+                            status = file_system_manager::file_system_status::unknown_error;
+                        }
+
+                        std::string response = make_response(status, response_message);
+
+                        for (long long i = 0; i < response.length(); i += buffer_size) {
+                            bzero(buffer, buffer_size);
+                            strcpy(buffer, response.substr(i, buffer_size).data());
+
+                            write(socket, &buffer[0], buffer_size);
+                        }
+                    }
+                }
+                else if (arr->at(0) == "create_file" || arr->at(0) == "rewrite_file" || arr->at(0) == "create_or_rewrite_file") {
+                    if (arr->size() < 3) {
+                        bzero(buffer, buffer_size);
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument and file length as second argument").data());
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                    else if(! is_number(arr->at(2))) {
+                        bzero(buffer, buffer_size);
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have number as second argument").data());
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                    else {
+                        const long long file_size = stoll(arr->at(2));
+                        std::filesystem::path path = base_directory;
+                        path += "/" + arr->at(1);
+                        path = path.lexically_normal();
+
+                        std::string file_text;
+                        for (int i = 0; i < div_with_round_up(file_size, buffer_size); i++) {
+                            read(socket, buffer, buffer_size);
+                            file_text += buffer;
+                        }
+
+                        file_system_manager::file_system_status status;
+                        if (arr->at(0) == "create_file") {
+                            status = file_system_manager::file_system_commands::create_file(path, file_text);
+                        }
+                        else if (arr->at(0) == "rewrite_file") {
+                            status = file_system_manager::file_system_commands::rewrite_file(path, file_text);
+                        }
+                        else if (arr->at(0) == "create_or_rewrite_file") {
+                            status = file_system_manager::file_system_commands::create_or_rewrite_file(path, file_text);
                         }
                         else {
                             status = file_system_manager::file_system_status::unknown_error;
@@ -289,56 +210,139 @@ namespace server {
                         write(socket, &buffer[0], buffer_size);
                     }
                 }
-            }
-            else if(arr->at(0) == "replace_file") {
-                if (arr->size() < 3) {
-                    bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").data());
-                    write(socket, &buffer[0], buffer_size);
+                else if (arr->at(0) == "change_data" || arr->at(0) == "change_file_data" || arr->at(0) == "change_directory_data") {
+                    if (arr->size() < 2) {
+                        bzero(buffer, buffer_size);
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file as first argument").data());
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                    else {
+                        bool is_arguments_ok = true;
+                        std::string name;
+                        std::string directory;
+                        for (auto it = arr->begin(); it != arr->end(); ++it) {
+                            if (*it == "--name") {
+                                ++it;
+                                if (it != arr->end()) {
+                                    name = *it;
+                                }
+                                else {
+                                    is_arguments_ok = false;
+                                    bzero(buffer, buffer_size);
+                                    buffer[0] = static_cast<char>(incorrect_arguments);
+                                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to file after --name parameter").data());
+                                    write(socket, &buffer[0], buffer_size);
+                                }
+                            }
+                            else if (*it == "--dir") {
+                                ++it;
+                                if (it != arr->end()) {
+                                    directory = *it;
+                                }
+                                else {
+                                    is_arguments_ok = false;
+                                    bzero(buffer, buffer_size);
+                                    buffer[0] = static_cast<char>(incorrect_arguments);
+                                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to new directory after --dir parameter").data());
+                                    write(socket, &buffer[0], buffer_size);
+                                }
+                            }
+                        }
+
+                        if (!directory.empty()) {
+                            std::filesystem::path relative_path = base_directory;
+                            relative_path += "/" + directory;
+                            relative_path = relative_path.lexically_normal();
+                            directory = relative_path.generic_string();
+
+                            if (!is_subpath(directory, base_directory)) {
+                                is_arguments_ok = false;
+                                bzero(buffer, buffer_size);
+                                buffer[0] = static_cast<char>(incorrect_arguments);
+                                strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have parent directory path higher than root").data());
+                                write(socket, &buffer[0], buffer_size);
+                            }
+                        }
+
+                        if (is_arguments_ok) {
+                            std::filesystem::path path = base_directory;
+                            path += "/" + arr->at(1);
+                            path = path.lexically_normal();
+
+                            file_system_manager::file_system_status status;
+                            if (arr->at(0) == "change_data") {
+                                status = file_system_manager::file_system_commands::change_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            }
+                            else if (arr->at(0) == "change_file_data") {
+                                status = file_system_manager::file_system_commands::change_file_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            }
+                            else if (arr->at(0) == "change_directory_data") {
+                                status = file_system_manager::file_system_commands::change_directory_data(path, name.empty() ? nullptr : &name, directory.empty() ? nullptr : &directory);
+                            }
+                            else {
+                                status = file_system_manager::file_system_status::unknown_error;
+                            }
+
+                            bzero(buffer, buffer_size);
+                            strcpy(buffer, make_response(status).data());
+
+                            write(socket, &buffer[0], buffer_size);
+                        }
+                    }
+                }
+                else if(arr->at(0) == "replace_file") {
+                    if (arr->size() < 3) {
+                        bzero(buffer, buffer_size);
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have old path to file as first argument and new path to file as second").data());
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                    else {
+                        std::filesystem::path old_path = base_directory;
+                        old_path += "/" + arr->at(1);
+                        old_path = old_path.lexically_normal();
+
+                        std::filesystem::path new_path = base_directory;
+                        new_path += "/" + arr->at(2);
+                        new_path = new_path.lexically_normal();
+
+                        bzero(buffer, buffer_size);
+                        strcpy(buffer, make_response(file_system_manager::file_system_commands::replace_file(old_path, new_path)).data());
+
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                }
+                else if (arr->at(0) == "create_directory") {
+                    if (arr->size() < 2) {
+                        bzero(buffer, buffer_size);
+                        buffer[0] = static_cast<char>(incorrect_arguments);
+                        strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").data());
+                        write(socket, &buffer[0], buffer_size);
+                    }
+                    else {
+                        std::filesystem::path path = base_directory;
+                        path += "/" + arr->at(1);
+                        path = path.lexically_normal();
+
+                        bzero(buffer, buffer_size);
+                        strcpy(buffer, make_response(file_system_manager::file_system_commands::create_directory(path)).data());
+
+                        write(socket, &buffer[0], buffer_size);
+                    }
                 }
                 else {
-                    std::filesystem::path old_path = base_directory;
-                    old_path += "/" + arr->at(1);
-                    old_path = old_path.lexically_normal();
-
-                    std::filesystem::path new_path = base_directory;
-                    new_path += "/" + arr->at(2);
-                    new_path = new_path.lexically_normal();
-
                     bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(file_system_manager::file_system_commands::replace_file(old_path, new_path)).data());
-
+                    buffer[0] = static_cast<char>(incorrect_command);
+                    strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").data());
                     write(socket, &buffer[0], buffer_size);
                 }
-            }
-            else if (arr->at(0) == "create_directory") {
-                if (arr->size() < 2) {
-                    bzero(buffer, buffer_size);
-                    buffer[0] = static_cast<char>(incorrect_arguments);
-                    strcpy(buffer + 1, (" \"" + arr->at(0) + "\" command must have path to folder as first argument").data());
-                    write(socket, &buffer[0], buffer_size);
-                }
-                else {
-                    std::filesystem::path path = base_directory;
-                    path += "/" + arr->at(1);
-                    path = path.lexically_normal();
+                delete arr;
+            } catch (...) {
 
-                    bzero(buffer, buffer_size);
-                    strcpy(buffer, make_response(file_system_manager::file_system_commands::create_directory(path)).data());
-
-                    write(socket, &buffer[0], buffer_size);
-                }
-            }
-            else {
-                bzero(buffer, buffer_size);
-                buffer[0] = static_cast<char>(incorrect_command);
-                strcpy(buffer + 1, ("It's no \"" + arr->at(0) + "\" command").data());
-                write(socket, &buffer[0], buffer_size);
             }
 
             close(socket);
-            delete arr;
             delete[] buffer;
         }
 
